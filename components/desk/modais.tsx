@@ -12,6 +12,15 @@ import {
   Loader2,
   CheckCircle2,
   Sparkles,
+  Phone,
+  Mail,
+  IdCard,
+  Calendar,
+  Car,
+  Image as ImageIcon,
+  FileCheck2,
+  Star,
+  Award,
 } from "lucide-react"
 import { Modal } from "@/components/desk/ui"
 import { viagens, formatBRL } from "@/lib/mock-data"
@@ -274,6 +283,255 @@ export function ExportarModal({ onClose, onExport }: { onClose: () => void; onEx
             </div>
           </button>
         ))}
+      </div>
+    </Modal>
+  )
+}
+
+/* ---------- Ficha do Motorista & Galeria de Vistorias ---------- */
+type FotoVistoria = { id: string; legenda: string; tipo: "entrada" | "saida" | "avaria" }
+type DocAnexo = { id: string; nome: string; tipo: string; tamanho: string }
+type HistViagem = { id: string; codigo: string; rota: string; data: string; status: string; veiculo: string }
+
+const fotosVistoria: FotoVistoria[] = [
+  { id: "f1", legenda: "Entrada — Lateral Esquerda", tipo: "entrada" },
+  { id: "f2", legenda: "Entrada — Para-choque Dianteiro", tipo: "entrada" },
+  { id: "f3", legenda: "Saída — Pneu Dianteiro", tipo: "saida" },
+  { id: "f4", legenda: "Avaria — Risco Porta Traseira", tipo: "avaria" },
+  { id: "f5", legenda: "Saída — Painel Quilométrico", tipo: "saida" },
+  { id: "f6", legenda: "Entrada — Teto do Veículo", tipo: "entrada" },
+]
+
+const docsAnexos: DocAnexo[] = [
+  { id: "doc1", nome: "CNH_Roberto_Silva.pdf", tipo: "CNH Digital", tamanho: "1.2 MB" },
+  { id: "doc2", nome: "Comprovante_Residencia.pdf", tipo: "Comprovante", tamanho: "0.8 MB" },
+  { id: "doc3", nome: "Exame_Toxicologico.pdf", tipo: "Exame Médico", tamanho: "2.1 MB" },
+  { id: "doc4", nome: "Contrato_Motorista.pdf", tipo: "Contrato", tamanho: "1.5 MB" },
+]
+
+const historicoViagens: HistViagem[] = [
+  { id: "h1", codigo: "#1042", rota: "São Paulo/SP → Rio de Janeiro/RJ", data: "15/08/2026", status: "Em Trânsito", veiculo: "Cegonha - Carreta Branca" },
+  { id: "h2", codigo: "#1038", rota: "São Paulo/SP → Belo Horizonte/MG", data: "10/08/2026", status: "Entregue", veiculo: "Cegonha - Carreta Branca" },
+  { id: "h3", codigo: "#1035", rota: "Rio de Janeiro/RJ → São Paulo/SP", data: "05/08/2026", status: "Entregue", veiculo: "Cegonha - Carreta Branca" },
+  { id: "h4", codigo: "#1031", rota: "Curitiba/PR → São Paulo/SP", data: "28/07/2026", status: "Entregue", veiculo: "Cegonha - Gaivota" },
+  { id: "h5", codigo: "#1028", rota: "São Paulo/SP → Salvador/BA", data: "20/07/2026", status: "Entregue", veiculo: "Cegonha - Carreta Branca" },
+]
+
+const fotoTipoStyle: Record<FotoVistoria["tipo"], { label: string; cls: string }> = {
+  entrada: { label: "Entrada", cls: "bg-primary/10 text-primary" },
+  saida: { label: "Saída", cls: "bg-success/10 text-success" },
+  avaria: { label: "Avaria", cls: "bg-destructive/10 text-destructive" },
+}
+
+export function FichaMotoristaModal({ nome, onClose }: { nome: string; onClose: () => void }) {
+  const iniciais = nome
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase()
+
+  return (
+    <Modal titulo="Ficha do Motorista" descricao="Perfil completo, histórico e vistorias" onClose={onClose} size="xl">
+      {/* Cabeçalho do perfil */}
+      <div className="flex flex-col gap-4 rounded-xl border border-border bg-gradient-to-br from-sidebar to-slate-800 p-5 text-white sm:flex-row sm:items-center">
+        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-primary text-2xl font-bold shadow-lg">
+          {iniciais}
+        </div>
+        <div className="flex-1">
+          <h2 className="text-xl font-bold">{nome}</h2>
+          <p className="text-sm text-slate-300">Cegonha #1042 · Carreta Branca</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="flex items-center gap-1 rounded-full bg-success/20 px-2.5 py-1 text-xs font-medium text-success">
+              <Star className="h-3 w-3" /> 4.8 avaliação
+            </span>
+            <span className="flex items-center gap-1 rounded-full bg-primary/20 px-2.5 py-1 text-xs font-medium text-primary">
+              <Award className="h-3 w-3" /> 142 viagens concluídas
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Dados básicos */}
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { icon: IdCard, label: "CNH", valor: "048.652.991-SP (Cat. E)" },
+          { icon: Phone, label: "Telefone", valor: "(11) 98765-4321" },
+          { icon: Mail, label: "E-mail", valor: "roberto.silva@autotrack.com" },
+          { icon: Calendar, label: "Admissão", valor: "14/03/2021" },
+        ].map((d) => {
+          const Icon = d.icon
+          return (
+            <div key={d.label} className="rounded-lg border border-border bg-background p-3">
+              <p className="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                <Icon className="h-3 w-3" /> {d.label}
+              </p>
+              <p className="mt-1 text-sm font-medium text-foreground">{d.valor}</p>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Histórico de viagens */}
+      <div className="mt-5">
+        <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-foreground">
+          <Truck className="h-4 w-4 text-primary" /> Histórico de Viagens
+        </h3>
+        <div className="overflow-hidden rounded-lg border border-border">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-muted/60 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="px-3 py-2 font-medium">Viagem</th>
+                <th className="px-3 py-2 font-medium">Rota</th>
+                <th className="px-3 py-2 font-medium">Data</th>
+                <th className="px-3 py-2 font-medium">Veículo</th>
+                <th className="px-3 py-2 font-medium">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {historicoViagens.map((h) => (
+                <tr key={h.id} className="hover:bg-muted/40">
+                  <td className="px-3 py-2.5 font-mono text-xs font-medium text-foreground">{h.codigo}</td>
+                  <td className="px-3 py-2.5 text-muted-foreground">{h.rota}</td>
+                  <td className="px-3 py-2.5 text-muted-foreground">{h.data}</td>
+                  <td className="px-3 py-2.5 text-muted-foreground">{h.veiculo}</td>
+                  <td className="px-3 py-2.5">
+                    <span
+                      className={`rounded-md px-2 py-0.5 text-xs font-medium ${
+                        h.status === "Entregue" ? "bg-success/10 text-success" : "bg-warning/10 text-warning"
+                      }`}
+                    >
+                      {h.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Galeria de vistorias */}
+      <div className="mt-5">
+        <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-foreground">
+          <ImageIcon className="h-4 w-4 text-primary" /> Galeria de Vistorias &amp; Avarias
+        </h3>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {fotosVistoria.map((f) => {
+            const st = fotoTipoStyle[f.tipo]
+            return (
+              <div key={f.id} className="group overflow-hidden rounded-lg border border-border bg-background">
+                <div className="relative flex h-28 items-center justify-center bg-gradient-to-br from-slate-200 to-slate-300">
+                  <Car className="h-12 w-12 text-slate-400" strokeWidth={1} />
+                  <span className={`absolute left-2 top-2 rounded-md px-1.5 py-0.5 text-[10px] font-medium ${st.cls}`}>
+                    {st.label}
+                  </span>
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition group-hover:bg-black/30 group-hover:opacity-100">
+                    <Eye className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+                <p className="px-2 py-1.5 text-[11px] font-medium text-muted-foreground">{f.legenda}</p>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Documentos anexos */}
+      <div className="mt-5">
+        <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-foreground">
+          <FileCheck2 className="h-4 w-4 text-primary" /> Documentos &amp; Comprovantes (PDF)
+        </h3>
+        <div className="space-y-2">
+          {docsAnexos.map((d) => (
+            <div
+              key={d.id}
+              className="flex items-center gap-3 rounded-lg border border-border bg-background px-4 py-3 transition hover:border-primary hover:bg-primary/5"
+            >
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+                <FileText className="h-4.5 w-4.5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-foreground">{d.nome}</p>
+                <p className="text-xs text-muted-foreground">{d.tipo} · {d.tamanho}</p>
+              </div>
+              <button className="flex items-center gap-1 rounded-md bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary transition hover:bg-primary/20">
+                <FileText className="h-3.5 w-3.5" /> Visualizar
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
+/* ---------- Novo Lançamento Financeiro ---------- */
+export function NovaLancamentoModal({
+  tipo,
+  onClose,
+  onSalvar,
+}: {
+  tipo: "pagar" | "receber"
+  onClose: () => void
+  onSalvar: () => void
+}) {
+  const [documento, setDocumento] = useState("")
+  const [entidade, setEntidade] = useState("")
+  const [valor, setValor] = useState("")
+  const [vencimento, setVencimento] = useState("")
+  const [categoria, setCategoria] = useState("")
+
+  const valida = documento && entidade && valor && vencimento
+
+  return (
+    <Modal
+      titulo={tipo === "pagar" ? "Nova Conta a Pagar" : "Nova Conta a Receber"}
+      descricao="Preencha os dados do lançamento financeiro"
+      onClose={onClose}
+    >
+      <div className="space-y-3">
+        <Campo label="Documento / NF" value={documento} onChange={setDocumento} placeholder="Ex: NF-8830" />
+        <Campo
+          label={tipo === "pagar" ? "Fornecedor" : "Cliente"}
+          value={entidade}
+          onChange={setEntidade}
+          placeholder={tipo === "pagar" ? "Ex: Posto Ipiranga" : "Ex: Localiza Rent a Car"}
+        />
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">Valor (R$)</label>
+            <input
+              inputMode="decimal"
+              value={valor}
+              onChange={(e) => setValor(e.target.value.replace(/[^0-9.,]/g, ""))}
+              placeholder="0,00"
+              className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">Vencimento</label>
+            <input
+              type="date"
+              value={vencimento}
+              onChange={(e) => setVencimento(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary"
+            />
+          </div>
+        </div>
+        <Campo label="Categoria" value={categoria} onChange={setCategoria} placeholder="Ex: Combustível, Frete..." />
+      </div>
+      <div className="mt-5 flex gap-2">
+        <button onClick={onClose} className="flex-1 rounded-lg border border-border py-2.5 text-sm font-medium text-muted-foreground">
+          Cancelar
+        </button>
+        <button
+          onClick={onSalvar}
+          disabled={!valida}
+          className="flex-[2] rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-40"
+        >
+          Registrar lançamento
+        </button>
       </div>
     </Modal>
   )

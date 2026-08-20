@@ -17,6 +17,7 @@ import {
 import { viagens as viagensSeed, type StatusViagem, type DespesaViagem, formatBRL } from "@/lib/mock-data"
 import { useStore } from "@/lib/store"
 import { Modal, Toast } from "@/components/desk/ui"
+import { FichaMotoristaModal } from "@/components/desk/modais"
 
 const etapas: StatusViagem[] = ["Planejada", "Em Carregamento", "Em Trânsito", "Entregue"]
 
@@ -60,6 +61,7 @@ export function DeskViagens() {
   const [recusando, setRecusando] = useState(false)
   const [motivo, setMotivo] = useState("")
   const [toast, setToast] = useState<string | null>(null)
+  const [fichaMotorista, setFichaMotorista] = useState<string | null>(null)
 
   function notify(msg: string) {
     setToast(msg)
@@ -117,7 +119,15 @@ export function DeskViagens() {
             </div>
             <div className="mt-4">
               <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
-                <span>Motorista: {v.motorista}</span>
+                <span>
+                  Motorista:{" "}
+                  <button
+                    onClick={() => setFichaMotorista(v.motorista)}
+                    className="font-medium text-primary underline-offset-2 transition hover:underline"
+                  >
+                    {v.motorista}
+                  </button>
+                </span>
                 <span>{v.progresso}%</span>
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-muted">
@@ -256,6 +266,7 @@ export function DeskViagens() {
         </Modal>
       )}
 
+      {fichaMotorista && <FichaMotoristaModal nome={fichaMotorista} onClose={() => setFichaMotorista(null)} />}
       {toast && <Toast msg={toast} />}
     </div>
   )

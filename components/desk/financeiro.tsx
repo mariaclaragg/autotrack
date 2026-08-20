@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { Landmark, Boxes, Receipt, BarChart3, Settings, ArrowDownCircle, ArrowUpCircle, Search, Download } from "lucide-react"
+import { Landmark, Boxes, Receipt, BarChart3, Settings, ArrowDownCircle, ArrowUpCircle, Search, Download, Plus } from "lucide-react"
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts"
 import { contasPagar, contasReceber, fluxoCaixaData, type ContaReceber, formatBRL } from "@/lib/mock-data"
-import { ExportarModal } from "@/components/desk/modais"
-import { Toast } from "@/components/desk/ui"
+import { ExportarModal, NovaLancamentoModal } from "@/components/desk/modais"
+import { Toast, AcoesBotoes } from "@/components/desk/ui"
 
 const statusStyle: Record<string, string> = {
   recebido: "bg-success/10 text-success",
@@ -16,6 +16,7 @@ const statusStyle: Record<string, string> = {
 function TabelaFinanceira({ titulo, dados, tipo }: { titulo: string; dados: ContaReceber[]; tipo: "pagar" | "receber" }) {
   const [busca, setBusca] = useState("")
   const [exportar, setExportar] = useState(false)
+  const [novoLanc, setNovoLanc] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
   const filtrados = dados.filter(
@@ -39,12 +40,20 @@ function TabelaFinanceira({ titulo, dados, tipo }: { titulo: string; dados: Cont
           </h1>
           <p className="text-sm text-muted-foreground">Total do período: {formatBRL(total)}</p>
         </div>
-        <button
-          onClick={() => setExportar(true)}
-          className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm transition hover:border-primary hover:text-primary"
-        >
-          <Download className="h-4 w-4" /> Exportar Relatório
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setNovoLanc(true)}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90"
+          >
+            <Plus className="h-4 w-4" /> {tipo === "pagar" ? "+ Nova Conta" : "+ Novo Lançamento"}
+          </button>
+          <button
+            onClick={() => setExportar(true)}
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm transition hover:border-primary hover:text-primary"
+          >
+            <Download className="h-4 w-4" /> Exportar Relatório
+          </button>
+        </div>
       </div>
 
       <div className="relative max-w-md">
@@ -97,6 +106,17 @@ function TabelaFinanceira({ titulo, dados, tipo }: { titulo: string; dados: Cont
         </div>
       </div>
 
+      {novoLanc && (
+        <NovaLancamentoModal
+          tipo={tipo}
+          onClose={() => setNovoLanc(false)}
+          onSalvar={() => {
+            setNovoLanc(false)
+            setToast("Lançamento registrado com sucesso!")
+            setTimeout(() => setToast(null), 2600)
+          }}
+        />
+      )}
       {exportar && <ExportarModal onClose={() => setExportar(false)} onExport={fazerExport} />}
       {toast && <Toast msg={toast} />}
     </div>
@@ -164,7 +184,12 @@ const estoque = [
 
 export function DeskEstoque() {
   const [busca, setBusca] = useState("")
+  const [toast, setToast] = useState<string | null>(null)
   const filtrados = estoque.filter((e) => e.item.toLowerCase().includes(busca.toLowerCase()))
+  function notify(msg: string) {
+    setToast(msg)
+    setTimeout(() => setToast(null), 2600)
+  }
   return (
     <div className="space-y-6">
       <div>
@@ -190,6 +215,7 @@ export function DeskEstoque() {
               <th className="px-4 py-2.5 text-right font-medium">Quantidade</th>
               <th className="px-4 py-2.5 text-right font-medium">Estoque Mín.</th>
               <th className="px-4 py-2.5 font-medium">Situação</th>
+              <th className="px-4 py-2.5 text-right font-medium">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -205,12 +231,20 @@ export function DeskEstoque() {
                       {baixo ? "Repor" : "Normal"}
                     </span>
                   </td>
+                  <td className="px-4 py-3">
+                    <AcoesBotoes
+                      onVisualizar={() => notify(`Visualizando: ${e.item}`)}
+                      onEditar={() => notify(`Editando: ${e.item}`)}
+                      onExcluir={() => notify(`Item excluído: ${e.item}`)}
+                    />
+                  </td>
                 </tr>
               )
             })}
           </tbody>
         </table>
       </div>
+      {toast && <Toast msg={toast} />}
     </div>
   )
 }
@@ -224,9 +258,14 @@ const vendas = [
 
 export function DeskVendas() {
   const [busca, setBusca] = useState("")
+  const [toast, setToast] = useState<string | null>(null)
   const filtrados = vendas.filter(
     (v) => v.cliente.toLowerCase().includes(busca.toLowerCase()) || v.rota.toLowerCase().includes(busca.toLowerCase()),
   )
+  function notify(msg: string) {
+    setToast(msg)
+    setTimeout(() => setToast(null), 2600)
+  }
   return (
     <div className="space-y-6">
       <div>
@@ -253,6 +292,7 @@ export function DeskVendas() {
               <th className="px-4 py-2.5 font-medium">Rota</th>
               <th className="px-4 py-2.5 text-right font-medium">Veículos</th>
               <th className="px-4 py-2.5 text-right font-medium">Valor do Frete</th>
+              <th className="px-4 py-2.5 text-right font-medium">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -263,11 +303,19 @@ export function DeskVendas() {
                 <td className="px-4 py-3 text-muted-foreground">{v.rota}</td>
                 <td className="px-4 py-3 text-right text-foreground">{v.veiculos}</td>
                 <td className="px-4 py-3 text-right font-medium text-foreground">{formatBRL(v.valor)}</td>
+                <td className="px-4 py-3">
+                  <AcoesBotoes
+                    onVisualizar={() => notify(`Visualizando ordem: ${v.doc}`)}
+                    onEditar={() => notify(`Editando ordem: ${v.doc}`)}
+                    onExcluir={() => notify(`Ordem excluída: ${v.doc}`)}
+                  />
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      {toast && <Toast msg={toast} />}
     </div>
   )
 }

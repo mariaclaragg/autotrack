@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Search, Plus, Building2, Users } from "lucide-react"
 import { clientes as clientesSeed, fornecedores as fornecedoresSeed, type Cliente, type Fornecedor } from "@/lib/mock-data"
 import { NovoCadastroModal } from "@/components/desk/modais"
-import { Toast } from "@/components/desk/ui"
+import { Toast, AcoesBotoes } from "@/components/desk/ui"
 
 export function DeskClientes() {
   const [lista, setLista] = useState<Cliente[]>(clientesSeed)
@@ -77,6 +77,7 @@ export function DeskClientes() {
                 <th className="px-4 py-2.5 font-medium">Município</th>
                 <th className="px-4 py-2.5 font-medium">UF</th>
                 <th className="px-4 py-2.5 font-medium">Telefone</th>
+                <th className="px-4 py-2.5 text-right font-medium">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -92,11 +93,21 @@ export function DeskClientes() {
                     <span className="rounded bg-secondary px-1.5 py-0.5 text-xs font-medium text-secondary-foreground">{c.uf}</span>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{c.telefone}</td>
+                  <td className="px-4 py-3">
+                    <AcoesBotoes
+                      onVisualizar={() => notify(`Visualizando cliente: ${c.nome}`)}
+                      onEditar={() => notify(`Editando cliente: ${c.nome}`)}
+                      onExcluir={() => {
+                        setLista((prev) => prev.filter((x) => x.id !== c.id))
+                        notify(`Cliente ${c.nome} excluído!`)
+                      }}
+                    />
+                  </td>
                 </tr>
               ))}
               {filtrados.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                  <td colSpan={9} className="px-4 py-8 text-center text-sm text-muted-foreground">
                     Nenhum cliente encontrado para "{busca}"
                   </td>
                 </tr>
