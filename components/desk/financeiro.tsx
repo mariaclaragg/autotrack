@@ -1,24 +1,11 @@
 "use client"
 
-import {
-  Landmark,
-  Boxes,
-  Receipt,
-  BarChart3,
-  Settings,
-  ArrowDownCircle,
-  ArrowUpCircle,
-} from "lucide-react"
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from "recharts"
+import { useState } from "react"
+import { Landmark, Boxes, Receipt, BarChart3, Settings, ArrowDownCircle, ArrowUpCircle, Search, Download } from "lucide-react"
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts"
 import { contasPagar, contasReceber, fluxoCaixaData, type ContaReceber, formatBRL } from "@/lib/mock-data"
+import { ExportarModal } from "@/components/desk/modais"
+import { Toast } from "@/components/desk/ui"
 
 const statusStyle: Record<string, string> = {
   recebido: "bg-success/10 text-success",
@@ -27,22 +14,49 @@ const statusStyle: Record<string, string> = {
 }
 
 function TabelaFinanceira({ titulo, dados, tipo }: { titulo: string; dados: ContaReceber[]; tipo: "pagar" | "receber" }) {
-  const total = dados.reduce((s, d) => s + d.valor, 0)
+  const [busca, setBusca] = useState("")
+  const [exportar, setExportar] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+
+  const filtrados = dados.filter(
+    (c) => c.cliente.toLowerCase().includes(busca.toLowerCase()) || c.documento.toLowerCase().includes(busca.toLowerCase()),
+  )
+  const total = filtrados.reduce((s, d) => s + d.valor, 0)
+
+  function fazerExport(fmt: string) {
+    setExportar(false)
+    setToast(`Relatório exportado em ${fmt}!`)
+    setTimeout(() => setToast(null), 2600)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold text-foreground">
-            {tipo === "pagar" ? (
-              <ArrowUpCircle className="h-6 w-6 text-destructive" />
-            ) : (
-              <ArrowDownCircle className="h-6 w-6 text-success" />
-            )}
+            {tipo === "pagar" ? <ArrowUpCircle className="h-6 w-6 text-destructive" /> : <ArrowDownCircle className="h-6 w-6 text-success" />}
             {titulo}
           </h1>
           <p className="text-sm text-muted-foreground">Total do período: {formatBRL(total)}</p>
         </div>
+        <button
+          onClick={() => setExportar(true)}
+          className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm transition hover:border-primary hover:text-primary"
+        >
+          <Download className="h-4 w-4" /> Exportar Relatório
+        </button>
       </div>
+
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder={`Buscar por ${tipo === "pagar" ? "fornecedor" : "cliente"} ou documento...`}
+          className="w-full rounded-lg border border-border bg-card py-2 pl-9 pr-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+        />
+      </div>
+
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -57,28 +71,34 @@ function TabelaFinanceira({ titulo, dados, tipo }: { titulo: string; dados: Cont
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {dados.map((c) => (
+              {filtrados.map((c) => (
                 <tr key={c.id} className="hover:bg-muted/40">
                   <td className="px-4 py-3 font-mono text-xs font-medium text-foreground">{c.documento}</td>
                   <td className="px-4 py-3 text-muted-foreground">{c.emissao}</td>
                   <td className="px-4 py-3 text-foreground">{c.cliente}</td>
                   <td className="px-4 py-3 text-right font-medium text-foreground">{formatBRL(c.valor)}</td>
                   <td className="px-4 py-3">
-                    <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${statusStyle[c.status]}`}>
-                      {c.vencimento}
-                    </span>
+                    <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${statusStyle[c.status]}`}>{c.vencimento}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="rounded-md bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
-                      {c.contaOrigem}
-                    </span>
+                    <span className="rounded-md bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">{c.contaOrigem}</span>
                   </td>
                 </tr>
               ))}
+              {filtrados.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                    Nenhum registro encontrado
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {exportar && <ExportarModal onClose={() => setExportar(false)} onExport={fazerExport} />}
+      {toast && <Toast msg={toast} />}
     </div>
   )
 }
@@ -122,13 +142,7 @@ export function DeskCaixa() {
             <BarChart data={fluxoCaixaData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
               <XAxis dataKey="mes" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis
-                stroke="#94a3b8"
-                fontSize={11}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(v) => `${v / 1000}k`}
-              />
+              <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `${v / 1000}k`} />
               <Tooltip formatter={(v: number) => formatBRL(v)} contentStyle={{ borderRadius: 8, fontSize: 12 }} />
               <Bar dataKey="receita" fill="#2563eb" radius={[4, 4, 0, 0]} />
               <Bar dataKey="despesa" fill="#0f172a" radius={[4, 4, 0, 0]} />
@@ -149,6 +163,8 @@ const estoque = [
 ]
 
 export function DeskEstoque() {
+  const [busca, setBusca] = useState("")
+  const filtrados = estoque.filter((e) => e.item.toLowerCase().includes(busca.toLowerCase()))
   return (
     <div className="space-y-6">
       <div>
@@ -156,6 +172,15 @@ export function DeskEstoque() {
           <Boxes className="h-6 w-6 text-primary" /> Estoque
         </h1>
         <p className="text-sm text-muted-foreground">Peças, insumos e materiais de amarração</p>
+      </div>
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Buscar item..."
+          className="w-full rounded-lg border border-border bg-card py-2 pl-9 pr-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+        />
       </div>
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         <table className="w-full text-sm">
@@ -168,23 +193,15 @@ export function DeskEstoque() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {estoque.map((e) => {
+            {filtrados.map((e) => {
               const baixo = e.qtd < e.min
               return (
                 <tr key={e.item} className="hover:bg-muted/40">
                   <td className="px-4 py-3 font-medium text-foreground">{e.item}</td>
-                  <td className="px-4 py-3 text-right text-foreground">
-                    {e.qtd.toLocaleString("pt-BR")} {e.un}
-                  </td>
-                  <td className="px-4 py-3 text-right text-muted-foreground">
-                    {e.min.toLocaleString("pt-BR")} {e.un}
-                  </td>
+                  <td className="px-4 py-3 text-right text-foreground">{e.qtd.toLocaleString("pt-BR")} {e.un}</td>
+                  <td className="px-4 py-3 text-right text-muted-foreground">{e.min.toLocaleString("pt-BR")} {e.un}</td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`rounded-md px-2 py-0.5 text-xs font-medium ${
-                        baixo ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"
-                      }`}
-                    >
+                    <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${baixo ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"}`}>
                       {baixo ? "Repor" : "Normal"}
                     </span>
                   </td>
@@ -206,6 +223,10 @@ const vendas = [
 ]
 
 export function DeskVendas() {
+  const [busca, setBusca] = useState("")
+  const filtrados = vendas.filter(
+    (v) => v.cliente.toLowerCase().includes(busca.toLowerCase()) || v.rota.toLowerCase().includes(busca.toLowerCase()),
+  )
   return (
     <div className="space-y-6">
       <div>
@@ -213,6 +234,15 @@ export function DeskVendas() {
           <Receipt className="h-6 w-6 text-primary" /> Vendas / Fretes
         </h1>
         <p className="text-sm text-muted-foreground">Ordens de frete de transporte de veículos</p>
+      </div>
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Buscar por cliente ou rota..."
+          className="w-full rounded-lg border border-border bg-card py-2 pl-9 pr-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+        />
       </div>
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         <table className="w-full text-sm">
@@ -226,7 +256,7 @@ export function DeskVendas() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {vendas.map((v) => (
+            {filtrados.map((v) => (
               <tr key={v.doc} className="hover:bg-muted/40">
                 <td className="px-4 py-3 font-mono text-xs font-medium text-foreground">{v.doc}</td>
                 <td className="px-4 py-3 text-foreground">{v.cliente}</td>
@@ -243,6 +273,8 @@ export function DeskVendas() {
 }
 
 export function DeskRelatorios() {
+  const [exportar, setExportar] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
   const rel = [
     { nome: "DRE Gerencial", desc: "Demonstrativo de resultados do exercício" },
     { nome: "Fluxo de Caixa Projetado", desc: "Projeção de 90 dias" },
@@ -251,6 +283,11 @@ export function DeskRelatorios() {
     { nome: "Consumo de Combustível", desc: "Km/L por rota e motorista" },
     { nome: "Produtividade da Frota", desc: "Ocupação média das cegonhas" },
   ]
+  function fazerExport(fmt: string) {
+    setExportar(null)
+    setToast(`Relatório exportado em ${fmt}!`)
+    setTimeout(() => setToast(null), 2600)
+  }
   return (
     <div className="space-y-6">
       <div>
@@ -263,6 +300,7 @@ export function DeskRelatorios() {
         {rel.map((r) => (
           <button
             key={r.nome}
+            onClick={() => setExportar(r.nome)}
             className="rounded-xl border border-border bg-card p-5 text-left shadow-sm transition hover:border-primary hover:shadow-md"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-accent-foreground">
@@ -273,11 +311,14 @@ export function DeskRelatorios() {
           </button>
         ))}
       </div>
+      {exportar && <ExportarModal onClose={() => setExportar(null)} onExport={fazerExport} />}
+      {toast && <Toast msg={toast} />}
     </div>
   )
 }
 
 export function DeskConfiguracoes() {
+  const [toast, setToast] = useState<string | null>(null)
   const opcoes = [
     { nome: "Dados da Empresa", desc: "Razão social, CNPJ, endereço fiscal" },
     { nome: "Usuários & Permissões", desc: "Controle de acesso por perfil" },
@@ -286,6 +327,10 @@ export function DeskConfiguracoes() {
     { nome: "Notas Fiscais (NF-e)", desc: "Certificado digital e séries" },
     { nome: "Inteligência Artificial", desc: "Preferências do diagnóstico com IA" },
   ]
+  function abrir(nome: string) {
+    setToast(`Abrindo: ${nome}`)
+    setTimeout(() => setToast(null), 2200)
+  }
   return (
     <div className="space-y-6">
       <div>
@@ -296,7 +341,11 @@ export function DeskConfiguracoes() {
       </div>
       <div className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         {opcoes.map((o) => (
-          <button key={o.nome} className="flex w-full items-center justify-between px-5 py-4 text-left transition hover:bg-muted/40">
+          <button
+            key={o.nome}
+            onClick={() => abrir(o.nome)}
+            className="flex w-full items-center justify-between px-5 py-4 text-left transition hover:bg-muted/40"
+          >
             <div>
               <p className="font-medium text-foreground">{o.nome}</p>
               <p className="text-sm text-muted-foreground">{o.desc}</p>
@@ -305,6 +354,7 @@ export function DeskConfiguracoes() {
           </button>
         ))}
       </div>
+      {toast && <Toast msg={toast} />}
     </div>
   )
 }

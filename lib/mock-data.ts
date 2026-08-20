@@ -75,6 +75,58 @@ export type Despesa = {
   comprovante: boolean
 }
 
+export type CategoriaDespesa =
+  | "Combustível"
+  | "Pedágio"
+  | "Alimentação"
+  | "Hospedagem/Pernoite"
+  | "Borracharia"
+  | "Manutenção de Emergência"
+  | "Outros"
+
+export type StatusAprovacao = "pendente" | "aprovado" | "recusado"
+
+export type DespesaViagem = {
+  id: string
+  categoria: CategoriaDespesa
+  valor: number
+  estabelecimento: string
+  dataHora: string
+  observacoes: string
+  comprovante: boolean
+  motorista: string
+  viagem: string
+  status: StatusAprovacao
+  motivoRecusa?: string
+}
+
+export const categoriasDespesa: CategoriaDespesa[] = [
+  "Combustível",
+  "Pedágio",
+  "Alimentação",
+  "Hospedagem/Pernoite",
+  "Borracharia",
+  "Manutenção de Emergência",
+  "Outros",
+]
+
+export const despesasIniciais: DespesaViagem[] = [
+  { id: "d1", categoria: "Combustível", valor: 850.0, estabelecimento: "Posto Ipiranga - Km 165 Dutra", dataHora: "15/08/2026 08:42", observacoes: "Abastecimento completo diesel S10", comprovante: true, motorista: "Roberto Silva", viagem: "#1042", status: "pendente" },
+  { id: "d2", categoria: "Pedágio", valor: 234.5, estabelecimento: "CCR NovaDutra", dataHora: "15/08/2026 10:15", observacoes: "Praças SP-RJ (eixo suspenso)", comprovante: true, motorista: "Roberto Silva", viagem: "#1042", status: "pendente" },
+  { id: "d3", categoria: "Alimentação", valor: 92.0, estabelecimento: "Restaurante Graal Aparecida", dataHora: "14/08/2026 12:30", observacoes: "Almoço", comprovante: true, motorista: "José Aparecido", viagem: "#1044", status: "aprovado" },
+  { id: "d4", categoria: "Manutenção de Emergência", valor: 1450.0, estabelecimento: "Oficina Diesel Master", dataHora: "13/08/2026 16:20", observacoes: "Troca de correia (sem orçamento prévio)", comprovante: true, motorista: "Marcos Antônio", viagem: "#1045", status: "recusado", motivoRecusa: "Falta autorização prévia da diretoria" },
+]
+
+export const categoriaChartColors: Record<string, string> = {
+  Combustível: "#2563eb",
+  Pedágio: "#0f172a",
+  Alimentação: "#16a34a",
+  "Hospedagem/Pernoite": "#d97706",
+  Borracharia: "#7c3aed",
+  "Manutenção de Emergência": "#dc2626",
+  Outros: "#64748b",
+}
+
 export const contasReceber: ContaReceber[] = [
   { id: "1", documento: "NF-8821", emissao: "01/08/2026", cliente: "Localiza Rent a Car S.A.", valor: 18450.0, vencimento: "15/08/2026", valorRecebido: 18450.0, contaOrigem: "Carreta Branca", status: "recebido" },
   { id: "2", documento: "NF-8822", emissao: "02/08/2026", cliente: "Movida Locação de Veículos", valor: 12300.5, vencimento: "18/08/2026", valorRecebido: 0, contaOrigem: "Guincho 3", status: "pendente" },

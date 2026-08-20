@@ -2,11 +2,40 @@
 
 import { useState } from "react"
 import { Search, Plus, Building2, Users } from "lucide-react"
-import { clientes, fornecedores } from "@/lib/mock-data"
+import { clientes as clientesSeed, fornecedores as fornecedoresSeed, type Cliente, type Fornecedor } from "@/lib/mock-data"
+import { NovoCadastroModal } from "@/components/desk/modais"
+import { Toast } from "@/components/desk/ui"
 
 export function DeskClientes() {
+  const [lista, setLista] = useState<Cliente[]>(clientesSeed)
   const [busca, setBusca] = useState("")
-  const filtrados = clientes.filter((c) => c.nome.toLowerCase().includes(busca.toLowerCase()))
+  const [modal, setModal] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+
+  const filtrados = lista.filter(
+    (c) =>
+      c.nome.toLowerCase().includes(busca.toLowerCase()) ||
+      c.documento.includes(busca) ||
+      c.municipio.toLowerCase().includes(busca.toLowerCase()),
+  )
+
+  function salvar() {
+    const novo: Cliente = {
+      id: `c${Date.now()}`,
+      nome: "Novo Cliente (demonstração)",
+      documento: "00.000.000/0001-00",
+      cep: "00000-000",
+      logradouro: "A definir",
+      bairro: "—",
+      municipio: "São Paulo",
+      uf: "SP",
+      telefone: "(11) 0000-0000",
+    }
+    setLista((prev) => [novo, ...prev])
+    setModal(false)
+    setToast("Cliente cadastrado com sucesso!")
+    setTimeout(() => setToast(null), 2600)
+  }
 
   return (
     <div className="space-y-6">
@@ -17,7 +46,10 @@ export function DeskClientes() {
           </h1>
           <p className="text-sm text-muted-foreground">Cadastro completo com dados fiscais e de endereço</p>
         </div>
-        <button className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90">
+        <button
+          onClick={() => setModal(true)}
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90"
+        >
           <Plus className="h-4 w-4" /> Novo Cliente
         </button>
       </div>
@@ -27,7 +59,7 @@ export function DeskClientes() {
         <input
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
-          placeholder="Buscar por nome ou razão social..."
+          placeholder="Buscar por nome, CNPJ ou município..."
           className="w-full rounded-lg border border-border bg-card py-2 pl-9 pr-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
       </div>
@@ -57,22 +89,55 @@ export function DeskClientes() {
                   <td className="px-4 py-3 text-muted-foreground">{c.bairro}</td>
                   <td className="px-4 py-3 text-foreground">{c.municipio}</td>
                   <td className="px-4 py-3">
-                    <span className="rounded bg-secondary px-1.5 py-0.5 text-xs font-medium text-secondary-foreground">
-                      {c.uf}
-                    </span>
+                    <span className="rounded bg-secondary px-1.5 py-0.5 text-xs font-medium text-secondary-foreground">{c.uf}</span>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{c.telefone}</td>
                 </tr>
               ))}
+              {filtrados.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                    Nenhum cliente encontrado para "{busca}"
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {modal && <NovoCadastroModal tipo="cliente" onClose={() => setModal(false)} onSalvar={salvar} />}
+      {toast && <Toast msg={toast} />}
     </div>
   )
 }
 
 export function DeskFornecedores() {
+  const [lista, setLista] = useState<Fornecedor[]>(fornecedoresSeed)
+  const [busca, setBusca] = useState("")
+  const [modal, setModal] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+
+  const filtrados = lista.filter(
+    (f) => f.nome.toLowerCase().includes(busca.toLowerCase()) || f.categoria.toLowerCase().includes(busca.toLowerCase()),
+  )
+
+  function salvar() {
+    const novo: Fornecedor = {
+      id: `f${Date.now()}`,
+      nome: "Novo Fornecedor (demonstração)",
+      documento: "00.000.000/0001-00",
+      categoria: "Serviços",
+      municipio: "São Paulo",
+      uf: "SP",
+      telefone: "(11) 0000-0000",
+    }
+    setLista((prev) => [novo, ...prev])
+    setModal(false)
+    setToast("Fornecedor cadastrado com sucesso!")
+    setTimeout(() => setToast(null), 2600)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -82,33 +147,45 @@ export function DeskFornecedores() {
           </h1>
           <p className="text-sm text-muted-foreground">Postos, oficinas, seguradoras e prestadores</p>
         </div>
-        <button className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90">
+        <button
+          onClick={() => setModal(true)}
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90"
+        >
           <Plus className="h-4 w-4" /> Novo Fornecedor
         </button>
       </div>
 
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Buscar por nome ou categoria..."
+          className="w-full rounded-lg border border-border bg-card py-2 pl-9 pr-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+        />
+      </div>
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {fornecedores.map((f) => (
+        {filtrados.map((f) => (
           <div key={f.id} className="rounded-xl border border-border bg-card p-5 shadow-sm">
             <div className="flex items-start justify-between">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-accent-foreground">
                 <Building2 className="h-5 w-5" />
               </div>
-              <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
-                {f.categoria}
-              </span>
+              <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">{f.categoria}</span>
             </div>
             <h3 className="mt-3 font-semibold text-foreground">{f.nome}</h3>
             <p className="font-mono text-xs text-muted-foreground">{f.documento}</p>
             <div className="mt-3 space-y-1 border-t border-border pt-3 text-sm text-muted-foreground">
-              <p>
-                {f.municipio} — {f.uf}
-              </p>
+              <p>{f.municipio} — {f.uf}</p>
               <p>{f.telefone}</p>
             </div>
           </div>
         ))}
       </div>
+
+      {modal && <NovoCadastroModal tipo="fornecedor" onClose={() => setModal(false)} onSalvar={salvar} />}
+      {toast && <Toast msg={toast} />}
     </div>
   )
 }
