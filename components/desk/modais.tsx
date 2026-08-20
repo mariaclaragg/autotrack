@@ -1,27 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import {
-  Truck,
-  MapPin,
-  Navigation,
-  TrendingUp,
-  TrendingDown,
-  FileText,
-  UploadCloud,
-  Loader2,
-  CheckCircle2,
-  Sparkles,
-  Phone,
-  Mail,
-  IdCard,
-  Calendar,
-  Car,
-  Image as ImageIcon,
-  FileCheck2,
-  Star,
-  Award,
-} from "lucide-react"
+import { Truck, MapPin, Navigation, TrendingUp, TrendingDown, FileText, CloudUpload as UploadCloud, Loader as Loader2, CircleCheck as CheckCircle2, Sparkles, Phone, Mail, IdCard, Calendar, Car, Image as ImageIcon, FileCheck as FileCheck2, Star, Award } from "lucide-react"
 import { Modal } from "@/components/desk/ui"
 import { viagens, formatBRL } from "@/lib/mock-data"
 

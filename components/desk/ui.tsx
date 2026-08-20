@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef, type ReactNode } from "react"
-import { X, CheckCircle2, Eye, Pencil, Trash2, MoreHorizontal } from "lucide-react"
+import { X, CircleCheck as CheckCircle2, Eye, Pencil, Trash2, MoveHorizontal as MoreHorizontal } from "lucide-react"
 
 export function Modal({
   titulo,

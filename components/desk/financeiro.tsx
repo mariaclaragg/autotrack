@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Landmark, Boxes, Receipt, BarChart3, Settings, ArrowDownCircle, ArrowUpCircle, Search, Download, Plus } from "lucide-react"
+import { Landmark, Boxes, Receipt, ChartBar as BarChart3, Settings, CircleArrowDown as ArrowDownCircle, CircleArrowUp as ArrowUpCircle, Search, Download, Plus } from "lucide-react"
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts"
 import { contasPagar, contasReceber, fluxoCaixaData, type ContaReceber, formatBRL } from "@/lib/mock-data"
 import { ExportarModal, NovaLancamentoModal } from "@/components/desk/modais"

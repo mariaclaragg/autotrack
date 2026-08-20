@@ -1,19 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import {
-  MapPin,
-  Truck,
-  Check,
-  Clock,
-  FileCheck2,
-  FileX2,
-  FileClock,
-  Package,
-  Eye,
-  Receipt,
-  X,
-} from "lucide-react"
+import { MapPin, Truck, Check, Clock, FileCheck as FileCheck2, FileX as FileX2, FileClock, Package, Eye, Receipt, X } from "lucide-react"
 import { viagens as viagensSeed, type StatusViagem, type DespesaViagem, formatBRL } from "@/lib/mock-data"
 import { useStore } from "@/lib/store"
 import { Modal, Toast } from "@/components/desk/ui"
